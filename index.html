@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Year Countdown Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <style>
+      body { margin: 0; padding: 0; overflow-x: hidden; }
+      .glass { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); }
+      .text-glow { text-shadow: 0 0 15px rgba(255, 255, 255, 0.5); }
+      .cyber-glow { text-shadow: 0 0 20px #00f3ff, 0 0 40px #00f3ff; }
+      @keyframes horse-run {
+        0% { transform: translateX(-10px) translateY(0); }
+        50% { transform: translateX(10px) translateY(-5px); }
+        100% { transform: translateX(-10px) translateY(0); }
+      }
+      .animate-horse { animation: horse-run 0.5s infinite ease-in-out; }
+
+      /* Transitions */
+      .fade-enter { opacity: 0; transform: translateY(1rem); }
+      .fade-enter-active { opacity: 1; transform: translateY(0); transition: opacity 300ms, transform 300ms; }
+      .fade-exit { opacity: 1; transform: translateY(0); }
+      .fade-exit-active { opacity: 0; transform: translateY(1rem); transition: opacity 300ms, transform 300ms; }
+    </style>
+    <script type="importmap">
+    {
+      "imports": {
+        "@google/genai": "https://esm.sh/@google/genai@^1.34.0"
+      }
+    }
+    </script>
+</head>
+<body class="bg-black text-white antialiased select-none touch-none overflow-hidden">
+
+    <!-- Main Container -->
+    <div id="app" class="relative w-screen h-screen overflow-hidden group">
+        
+        <!-- Clock Container (Style Wrapper) -->
+        <div id="style-wrapper" class="w-full h-full flex flex-col items-center justify-center transition-all duration-1000 p-4 overflow-hidden">
+            <!-- Dynamic Content Injected Here -->
+            <div id="clock-content" class="w-full h-full flex flex-col items-center justify-center"></div>
+        </div>
+
+        <!-- Floating Controls -->
+        <div id="controls" class="fixed bottom-4 sm:bottom-8 left-1/2 -translate-x-1/2 flex flex-wrap justify-center gap-2 sm:gap-4 transition-all duration-500 z-40 px-4 w-full max-w-lg opacity-0 translate-y-4 pointer-events-none">
+            <button id="btn-reset" class="bg-orange-600 text-white px-4 sm:px-6 py-2.5 sm:py-3.5 rounded-full shadow-lg border border-white/20 font-bold transition-all hover:scale-105 active:scale-95 flex items-center gap-2 text-xs sm:text-sm whitespace-nowrap">
+                <span>🔄</span> 重新开始
+            </button>
+            <button id="btn-settings" class="bg-black/40 text-white px-4 sm:px-6 py-2.5 sm:py-3.5 rounded-full backdrop-blur-md border border-white/20 font-bold transition-all hover:scale-105 active:scale-95 text-xs sm:text-sm whitespace-nowrap">
+                <span>⚙️</span> 模拟配置
+            </button>
+            <button id="btn-fullscreen" class="bg-black/40 text-white px-4 sm:px-6 py-2.5 sm:py-3.5 rounded-full backdrop-blur-md border border-white/20 font-bold transition-all hover:scale-105 active:scale-95 text-xs sm:text-sm whitespace-nowrap hidden sm:flex">
+                📽️ 进入全屏
+            </button>
+        </div>
+
+        <!-- Settings Panel -->
+        <div id="settings-backdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden"></div>
+        <div id="settings-panel" class="fixed inset-y-0 right-0 w-[85vw] sm:w-80 bg-neutral-900 border-l border-white/10 p-5 md:p-6 shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-full">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-xl font-bold text-white">模拟配置</h2>
+                <button id="btn-close-settings" class="p-2 hover:bg-white/10 rounded-full text-white/50 hover:text-white">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+
+            <div class="space-y-6 text-sm text-neutral-300">
+                <div>
+                    <label class="block mb-2 font-medium">模板风格</label>
+                    <div class="grid grid-cols-1 gap-2" id="style-selector">
+                        <!-- Style buttons injected here -->
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="font-medium text-blue-400 italic">模拟此刻时刻</label>
+                        <button id="btn-realtime" class="text-[10px] bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded hover:bg-blue-500/40">
+                            设为真实
+                        </button>
+                    </div>
+                    <input type="datetime-local" step="1" id="input-virtual-now" class="w-full bg-blue-500/10 border border-blue-500/30 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-blue-100 text-xs md:text-sm">
+                </div>
+
+                <div>
+                    <label class="block mb-2 font-medium">自定义语录</label>
+                    <textarea id="input-message" placeholder="输入新年愿望..." class="w-full bg-white/5 border border-white/10 rounded-lg p-2.5 h-20 md:h-24 focus:outline-none focus:ring-2 focus:ring-white/20 resize-none text-xs md:text-sm"></textarea>
+                    <button id="btn-ai-wish" class="mt-2 w-full flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-red-600 text-white font-bold py-2.5 rounded-lg hover:opacity-90 disabled:opacity-50 text-xs md:text-sm">
+                        ✨ AI 润色愿望
+                    </button>
+                </div>
+            </div>
+
+            <div class="mt-12 text-center opacity-30 text-[10px]">
+                <p>New Year Clock Simulator Pro</p>
+                <p>v1.2 Pure HTML Edition</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Application Logic -->
+    <script type="module">
+        import { GoogleGenAI } from "@google/genai";
+
+        // --- Types & Constants ---
+        const ClockStyle = {
+            IOS_MINIMAL: 'iOS Minimal',
+            FUTURE_TECH: 'Future Tech',
+            GALLOPING_SPIRIT: 'Galloping Spirit'
+        };
+
+        const THEMES = {
+            [ClockStyle.IOS_MINIMAL]: "bg-neutral-50 text-neutral-900",
+            [ClockStyle.FUTURE_TECH]: "bg-slate-950 text-cyan-400",
+            [ClockStyle.GALLOPING_SPIRIT]: "bg-red-700 text-yellow-300"
+        };
+
+        // --- State Management ---
+        const state = {
+            settings: {
+                virtualNow: "",
+                customMessage: "凡是过往，皆为序章。新年快乐！",
+                style: ClockStyle.GALLOPING_SPIRIT
+            },
+            offset: 0,
+            clockData: {
+                year: 0, month: 0, day: 0, hours: 0, minutes: 0, seconds: 0
+            },
+            ui: {
+                isSettingsOpen: false,
+                isFullScreen: false,
+                showUI: false,
+                uiTimer: null
+            }
+        };
+
+        // --- Gemini Service ---
+        // IMPORTANT: In a real deployment, do not expose API keys in client-side code.
+        // This is a local-only demo.
+        const API_KEY = ""; // User: Insert your Gemini API Key here or load from secure source if possible.
+
+        const generateNewYearWish = async (userContext) => {
+            if (!API_KEY) {
+                alert("Please add your Gemini API Key in the source code (index.html line ~145) to use AI features.");
+                return userContext;
+            }
+            try {
+                const ai = new GoogleGenAI({ apiKey: API_KEY });
+                const response = await ai.models.generateContent({
+                    model: 'gemini-2.0-flash-exp', // Updated model name for better performance
+                    contents: `Generate a short, energetic, and highly inspiring New Year greeting based on this context: "${userContext}". The greeting should be in Chinese, limited to 20 words, suitable for a billboard-style countdown display. Use emojis where appropriate.`,
+                });
+                return response.text().trim() || "愿新的一年，星辰大海，万事顺遂！✨";
+            } catch (error) {
+                console.error("Gemini API Error:", error);
+                return "愿新的一年，奔赴星辰，万事可期！✨"; // Fallback
+            }
+        };
+
+        // --- Logic ---
+
+        const getFormattedDate = (date) => {
+            return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 19);
+        };
+
+        const pad = (num) => num.toString().padStart(2, '0');
+
+        const init = () => {
+            // Set initial virtual time
+            const currentYear = new Date().getFullYear();
+            const virtualStart = new Date(currentYear, 11, 31, 23, 59, 10);
+            state.settings.virtualNow = getFormattedDate(virtualStart);
+
+            calculateOffset();
+            setupEventListeners();
+            initSettingsUI();
+            
+            // Start loops
+            setInterval(tickClock, 100);
+            tickClock(); // Initial tick
+            render(); // Initial render functionality
+        };
+
+        const calculateOffset = () => {
+            const vNow = new Date(state.settings.virtualNow).getTime();
+            const rNow = Date.now();
+            state.offset = vNow - rNow;
+        };
+
+        const tickClock = () => {
+            const effectiveNow = new Date(Date.now() + state.offset);
+            state.clockData = {
+                year: effectiveNow.getFullYear(),
+                month: effectiveNow.getMonth() + 1,
+                day: effectiveNow.getDate(),
+                hours: effectiveNow.getHours(),
+                minutes: effectiveNow.getMinutes(),
+                seconds: effectiveNow.getSeconds()
+            };
+            
+            // Efficient text updates (avoid full re-render)
+            updateTimeDisplay();
+        };
+
+        // --- DOM Elements ---
+        const els = {
+            app: document.getElementById('app'),
+            styleWrapper: document.getElementById('style-wrapper'),
+            clockContent: document.getElementById('clock-content'),
+            controls: document.getElementById('controls'),
+            settingsPanel: document.getElementById('settings-panel'),
+            settingsBackdrop: document.getElementById('settings-backdrop'),
+            btnReset: document.getElementById('btn-reset'),
+            btnSettings: document.getElementById('btn-settings'),
+            btnCloseSettings: document.getElementById('btn-close-settings'),
+            btnFullscreen: document.getElementById('btn-fullscreen'),
+            btnRealtime: document.getElementById('btn-realtime'),
+            btnAiWish: document.getElementById('btn-ai-wish'),
+            inputVirtualNow: document.getElementById('input-virtual-now'),
+            inputMessage: document.getElementById('input-message'),
+            styleSelector: document.getElementById('style-selector')
+        };
+
+        // --- Rendering ---
+
+        let currentStyle = null;
+
+        const render = () => {
+            // Check if style changed
+            if (currentStyle !== state.settings.style) {
+                currentStyle = state.settings.style;
+                // Update wrapper classes
+                els.styleWrapper.className = `w-full h-full flex flex-col items-center justify-center transition-all duration-1000 p-4 overflow-hidden ${THEMES[currentStyle] || "bg-black text-white"}`;
+                
+                // Re-build DOM structure for the specific clock style
+                renderClockStructure(currentStyle);
+            }
+            
+            // Update inputs if they don't have focus (to avoid annoying user typing)
+             if (document.activeElement !== els.inputVirtualNow) {
+                 // We don't update time input constantly as it represents the *start* time or setting, 
+                 // but here we just keep it synced with state if needed. 
+                 // Actually, React code only updates it on change. 
+                 els.inputVirtualNow.value = state.settings.virtualNow;
+             }
+             if (document.activeElement !== els.inputMessage) {
+                 els.inputMessage.value = state.settings.customMessage;
+             }
+        };
+        
+        const renderClockStructure = (style) => {
+            const container = els.clockContent;
+            container.innerHTML = ''; // Clear previous
+
+            if (style === ClockStyle.IOS_MINIMAL) {
+                 container.innerHTML = `
+                    <div class="flex flex-col items-center gap-2 md:gap-6 font-['Inter'] w-full max-w-[95vw]">
+                      <div id="date-el" class="text-[4vw] sm:text-[2.5vw] md:text-2xl lg:text-3xl tracking-[0.2em] opacity-60 font-medium"></div>
+                      <div class="flex items-baseline justify-center tabular-nums text-[18vw] sm:text-[15vw] md:text-[18vw] lg:text-[16vw] xl:text-[20rem] font-extrabold leading-none tracking-tighter select-none">
+                        <span id="hours-el" class="inline-block text-right min-w-[1.2em]"></span>
+                        <span class="mx-[0.1em] opacity-80 inline-block text-center w-[0.4em]">:</span>
+                        <span id="minutes-el" class="inline-block text-center min-w-[1.2em]"></span>
+                        <span class="mx-[0.1em] opacity-80 inline-block text-center w-[0.4em]">:</span>
+                        <span id="seconds-el" class="inline-block text-left min-w-[1.2em]"></span>
+                      </div>
+                      <div id="message-el" class="text-[4vw] sm:text-[3vw] md:text-2xl lg:text-3xl xl:text-4xl font-light tracking-tight text-center opacity-70 mt-2 md:mt-4 max-w-[80%] line-clamp-2"></div>
+                    </div>
+                `;
+            } else if (style === ClockStyle.FUTURE_TECH) {
+                container.innerHTML = `
+                    <div class="relative flex flex-col items-center font-['JetBrains_Mono'] w-full h-full justify-center">
+                      <div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(circle, #22d3ee 1px, transparent 1px); background-size: clamp(30px, 5vw, 60px) clamp(30px, 5vw, 60px);"></div>
+                      <div id="date-el" class="text-[3vw] sm:text-[2vw] md:text-xl lg:text-2xl tracking-[0.5em] mb-4 border border-cyan-400/30 px-6 py-1 md:px-8 md:py-2 glass uppercase"></div>
+                      <div class="flex items-baseline justify-center tabular-nums text-[15vw] sm:text-[12vw] md:text-[14vw] lg:text-[12vw] xl:text-[15rem] font-bold cyber-glow leading-none">
+                         <span id="hours-el" class="inline-block text-right min-w-[1.2em]"></span>
+                        <span class="mx-[0.1em] opacity-80 inline-block text-center w-[0.4em]">:</span>
+                        <span id="minutes-el" class="inline-block text-center min-w-[1.2em]"></span>
+                        <span class="mx-[0.1em] opacity-80 inline-block text-center w-[0.4em]">:</span>
+                        <span id="seconds-el" class="inline-block text-left min-w-[1.2em]"></span>
+                      </div>
+                      <div class="mt-8 md:mt-12 text-[3.5vw] sm:text-[2.5vw] md:text-2xl lg:text-3xl tracking-widest text-center px-4 border-l-4 border-cyan-500 pl-4 md:pl-6 py-1 md:py-2 glass max-w-[90%] truncate">
+                        &gt; <span id="message-el"></span>_
+                      </div>
+                    </div>
+                `;
+            } else if (style === ClockStyle.GALLOPING_SPIRIT) {
+                container.innerHTML = `
+                    <div class="flex flex-col items-center gap-2 md:gap-4 font-['Noto_Sans_SC'] w-full">
+                      <div id="date-el" class="text-[5vw] sm:text-[3.5vw] md:text-3xl lg:text-5xl font-black bg-yellow-400 text-red-700 px-6 py-1 md:px-10 md:py-2 transform -rotate-1 shadow-2xl mb-2 md:mb-4"></div>
+                      <div class="flex gap-1 items-center animate-horse">
+                         <div class="flex items-baseline justify-center tabular-nums text-[18vw] sm:text-[14vw] md:text-[16vw] lg:text-[18vw] xl:text-[22rem] font-black leading-none drop-shadow-2xl italic tracking-tighter">
+                            <span id="hours-el" class="inline-block text-right min-w-[1.2em]"></span>
+                            <span class="mx-[0.1em] opacity-80 inline-block text-center w-[0.4em]">:</span>
+                            <span id="minutes-el" class="inline-block text-center min-w-[1.2em]"></span>
+                            <span class="mx-[0.1em] opacity-80 inline-block text-center w-[0.4em]">:</span>
+                            <span id="seconds-el" class="inline-block text-left min-w-[1.2em]"></span>
+                         </div>
+                      </div>
+                      <div id="message-el" class="text-[6vw] sm:text-[4.5vw] md:text-4xl lg:text-6xl font-black italic tracking-tighter text-yellow-400 transform skew-x-[-12deg] drop-shadow-lg text-center px-4 mt-4 md:mt-6 line-clamp-2 max-w-[95%]"></div>
+                    </div>
+                `;
+            }
+        };
+
+        const updateTimeDisplay = () => {
+             const dateEl = document.getElementById('date-el');
+             const hoursEl = document.getElementById('hours-el');
+             const minutesEl = document.getElementById('minutes-el');
+             const secondsEl = document.getElementById('seconds-el');
+             const messageEl = document.getElementById('message-el');
+
+             if (!dateEl || !hoursEl) return; // Not mounted yet
+
+             const { year, month, day, hours, minutes, seconds } = state.clockData;
+             
+             // Update Date
+             dateEl.textContent = `${year}年${month}月${day}日`;
+             
+             // Update Time
+             hoursEl.textContent = pad(hours);
+             minutesEl.textContent = pad(minutes);
+             secondsEl.textContent = pad(seconds);
+             
+             // Update Message
+             const msg = state.settings.customMessage;
+             if (messageEl.textContent !== msg) {
+                 messageEl.textContent = msg;
+             }
+        };
+
+        // --- Event Listeners & UI Logic ---
+
+        const setupEventListeners = () => {
+            // UI visibility
+            const showUi = () => {
+                if (state.ui.isSettingsOpen) return;
+                els.controls.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+                els.controls.classList.add('opacity-100', 'translate-y-0');
+                
+                if (state.ui.uiTimer) clearTimeout(state.ui.uiTimer);
+                state.ui.uiTimer = setTimeout(() => {
+                    if (!state.ui.isSettingsOpen) {
+                        els.controls.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+                        els.controls.classList.remove('opacity-100', 'translate-y-0');
+                    }
+                }, 3000);
+            };
+
+            els.app.addEventListener('click', showUi);
+            els.app.addEventListener('mousemove', showUi);
+
+            // Controls
+            els.btnReset.addEventListener('click', (e) => {
+                e.stopPropagation();
+                calculateOffset();
+            });
+
+            els.btnSettings.addEventListener('click', (e) => {
+                e.stopPropagation();
+                openSettings();
+            });
+
+            els.btnFullscreen.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleFullScreen();
+            });
+
+            // Settings Panel Events
+            els.btnCloseSettings.addEventListener('click', closeSettings);
+            els.settingsBackdrop.addEventListener('click', closeSettings);
+            
+            els.inputVirtualNow.addEventListener('change', (e) => {
+                state.settings.virtualNow = e.target.value;
+                calculateOffset();
+            });
+
+            els.inputMessage.addEventListener('input', (e) => {
+                state.settings.customMessage = e.target.value;
+            });
+
+            els.btnRealtime.addEventListener('click', () => {
+                 const now = new Date();
+                 const localNow = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 19);
+                 state.settings.virtualNow = localNow;
+                 render(); // Update input value
+                 calculateOffset();
+            });
+            
+            els.btnAiWish.addEventListener('click', async () => {
+                els.btnAiWish.disabled = true;
+                els.btnAiWish.textContent = "生成中...";
+                const wish = await generateNewYearWish(state.settings.customMessage || "新的一年，万事大吉");
+                state.settings.customMessage = wish;
+                render(); // Update textarea
+                els.btnAiWish.textContent = "✨ AI 润色愿望";
+                els.btnAiWish.disabled = false;
+            });
+        };
+
+        const initSettingsUI = () => {
+             // Generate style buttons
+             els.styleSelector.innerHTML = Object.values(ClockStyle).map(s => `
+                <button class="style-btn p-3 rounded-lg text-left transition-all text-xs md:text-sm ${state.settings.style === s ? 'bg-white text-black font-bold' : 'bg-white/5 hover:bg-white/10'}" data-style="${s}">
+                  ${s}
+                </button>
+             `).join('');
+
+             els.styleSelector.querySelectorAll('.style-btn').forEach(btn => {
+                 btn.addEventListener('click', () => {
+                     state.settings.style = btn.dataset.style;
+                     updateStyleButtons();
+                     render();
+                 });
+             });
+        };
+
+        const updateStyleButtons = () => {
+             els.styleSelector.querySelectorAll('.style-btn').forEach(btn => {
+                 const s = btn.dataset.style;
+                 if (state.settings.style === s) {
+                     btn.className = 'style-btn p-3 rounded-lg text-left transition-all text-xs md:text-sm bg-white text-black font-bold';
+                 } else {
+                     btn.className = 'style-btn p-3 rounded-lg text-left transition-all text-xs md:text-sm bg-white/5 hover:bg-white/10';
+                 }
+             });
+        };
+
+        const openSettings = () => {
+            state.ui.isSettingsOpen = true;
+            els.settingsBackdrop.classList.remove('hidden');
+            els.settingsPanel.classList.remove('translate-x-full');
+            
+            // Keep controls visible behind
+            els.controls.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+            els.controls.classList.add('opacity-100', 'translate-y-0');
+            if (state.ui.uiTimer) clearTimeout(state.ui.uiTimer);
+        };
+
+        const closeSettings = () => {
+            state.ui.isSettingsOpen = false;
+            els.settingsBackdrop.classList.add('hidden');
+            els.settingsPanel.classList.add('translate-x-full');
+            
+            // Allow controls to fade out again
+            state.ui.uiTimer = setTimeout(() => {
+                if (!state.ui.isSettingsOpen) {
+                    els.controls.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+                    els.controls.classList.remove('opacity-100', 'translate-y-0');
+                }
+            }, 3000);
+        };
+
+        const toggleFullScreen = () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+                state.ui.isFullScreen = true;
+                els.btnFullscreen.innerHTML = "退出全屏";
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                    state.ui.isFullScreen = false;
+                    els.btnFullscreen.innerHTML = "📽️ 进入全屏";
+                }
+            }
+        };
+
+        // --- Start ---
+        init();
+
+    </script>
+</body>
+</html>
