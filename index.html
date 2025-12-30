@@ -1,13 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>New Year Countdown Pro</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>跨年预览版本</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@300;400;700;900&display=swap" rel="stylesheet">
+
+    <!-- ✅ GitHub Pages / SPA 刷新不 404（可选但推荐） -->
+    <base href="./" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@300;400;700;900&display=swap" rel="stylesheet" />
+
     <style>
       body { margin: 0; padding: 0; overflow-x: hidden; }
       .glass { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); }
@@ -26,6 +31,7 @@
       .fade-exit { opacity: 1; transform: translateY(0); }
       .fade-exit-active { opacity: 0; transform: translateY(1rem); transition: opacity 300ms, transform 300ms; }
     </style>
+
     <script type="importmap">
     {
       "imports": {
@@ -34,11 +40,36 @@
     }
     </script>
 </head>
+
 <body class="bg-black text-white antialiased select-none touch-none overflow-hidden">
 
     <!-- Main Container -->
     <div id="app" class="relative w-screen h-screen overflow-hidden group">
-        
+
+        <!-- ✅ PGA 头部（页面应用版本信息） -->
+        <header class="fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 pt-4 pointer-events-none">
+          <div class="pointer-events-auto mx-auto max-w-4xl glass border border-white/10 rounded-2xl px-4 py-3 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center">
+                <span class="text-lg">🧩</span>
+              </div>
+              <div class="leading-tight">
+                <div class="text-sm sm:text-base font-extrabold tracking-tight">PGA 页面应用版本</div>
+                <div class="text-[10px] sm:text-xs text-white/60">Pure HTML / Tailwind / ESM · SPA Ready</div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <span id="pwa-badge" class="hidden text-[10px] sm:text-xs px-2 py-1 rounded-full bg-emerald-500/15 text-emerald-200 border border-emerald-400/20">
+                ✅ 可安装(PWA)
+              </span>
+              <span class="text-[10px] sm:text-xs px-2 py-1 rounded-full bg-white/5 text-white/70 border border-white/10">
+                v1.2
+              </span>
+            </div>
+          </div>
+        </header>
+
         <!-- Clock Container (Style Wrapper) -->
         <div id="style-wrapper" class="w-full h-full flex flex-col items-center justify-center transition-all duration-1000 p-4 overflow-hidden">
             <!-- Dynamic Content Injected Here -->
@@ -64,7 +95,9 @@
             <div class="flex items-center justify-between mb-8">
                 <h2 class="text-xl font-bold text-white">模拟配置</h2>
                 <button id="btn-close-settings" class="p-2 hover:bg-white/10 rounded-full text-white/50 hover:text-white">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
                 </button>
             </div>
 
@@ -83,7 +116,7 @@
                             设为真实
                         </button>
                     </div>
-                    <input type="datetime-local" step="1" id="input-virtual-now" class="w-full bg-blue-500/10 border border-blue-500/30 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-blue-100 text-xs md:text-sm">
+                    <input type="datetime-local" step="1" id="input-virtual-now" class="w-full bg-blue-500/10 border border-blue-500/30 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-blue-100 text-xs md:text-sm" />
                 </div>
 
                 <div>
@@ -95,9 +128,11 @@
                 </div>
             </div>
 
-            <div class="mt-12 text-center opacity-30 text-[10px]">
-                <p>New Year Clock Simulator Pro</p>
-                <p>v1.2 Pure HTML Edition</p>
+            <!-- ✅ PGA 版本说明（替换底部文案） -->
+            <div class="mt-12 text-center opacity-40 text-[10px] space-y-1">
+                <p class="font-bold tracking-wide">PGA 页面应用版本</p>
+                <p>v1.2 · GitHub Pages / 静态托管可用</p>
+                <p class="opacity-70">提示：如需离线/PWA，请添加 manifest.json + service worker</p>
             </div>
         </div>
 
@@ -128,46 +163,34 @@
                 style: ClockStyle.GALLOPING_SPIRIT
             },
             offset: 0,
-            clockData: {
-                year: 0, month: 0, day: 0, hours: 0, minutes: 0, seconds: 0
-            },
-            ui: {
-                isSettingsOpen: false,
-                isFullScreen: false,
-                showUI: false,
-                uiTimer: null
-            }
+            clockData: { year: 0, month: 0, day: 0, hours: 0, minutes: 0, seconds: 0 },
+            ui: { isSettingsOpen: false, isFullScreen: false, showUI: false, uiTimer: null }
         };
 
         // --- Gemini Service ---
         // IMPORTANT: In a real deployment, do not expose API keys in client-side code.
-        // This is a local-only demo.
         const API_KEY = ""; // User: Insert your Gemini API Key here or load from secure source if possible.
 
         const generateNewYearWish = async (userContext) => {
             if (!API_KEY) {
-                alert("Please add your Gemini API Key in the source code (index.html line ~145) to use AI features.");
+                alert("Please add your Gemini API Key in the source code to use AI features.");
                 return userContext;
             }
             try {
                 const ai = new GoogleGenAI({ apiKey: API_KEY });
                 const response = await ai.models.generateContent({
-                    model: 'gemini-2.0-flash-exp', // Updated model name for better performance
+                    model: 'gemini-2.0-flash-exp',
                     contents: `Generate a short, energetic, and highly inspiring New Year greeting based on this context: "${userContext}". The greeting should be in Chinese, limited to 20 words, suitable for a billboard-style countdown display. Use emojis where appropriate.`,
                 });
                 return response.text().trim() || "愿新的一年，星辰大海，万事顺遂！✨";
             } catch (error) {
                 console.error("Gemini API Error:", error);
-                return "愿新的一年，奔赴星辰，万事可期！✨"; // Fallback
+                return "愿新的一年，奔赴星辰，万事可期！✨";
             }
         };
 
         // --- Logic ---
-
-        const getFormattedDate = (date) => {
-            return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 19);
-        };
-
+        const getFormattedDate = (date) => new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 19);
         const pad = (num) => num.toString().padStart(2, '0');
 
         const init = () => {
@@ -179,11 +202,12 @@
             calculateOffset();
             setupEventListeners();
             initSettingsUI();
-            
+
             // Start loops
             setInterval(tickClock, 100);
-            tickClock(); // Initial tick
-            render(); // Initial render functionality
+            tickClock();
+            render();
+            detectPwa();
         };
 
         const calculateOffset = () => {
@@ -202,8 +226,6 @@
                 minutes: effectiveNow.getMinutes(),
                 seconds: effectiveNow.getSeconds()
             };
-            
-            // Efficient text updates (avoid full re-render)
             updateTimeDisplay();
         };
 
@@ -223,39 +245,53 @@
             btnAiWish: document.getElementById('btn-ai-wish'),
             inputVirtualNow: document.getElementById('input-virtual-now'),
             inputMessage: document.getElementById('input-message'),
-            styleSelector: document.getElementById('style-selector')
+            styleSelector: document.getElementById('style-selector'),
+            pwaBadge: document.getElementById('pwa-badge')
+        };
+
+        // ✅ PGA/Pages：简单识别是否可安装 / 已安装（无侵入）
+        const detectPwa = () => {
+            // 若页面以 standalone 启动，说明已被安装成 PWA
+            const isStandalone =
+              window.matchMedia?.('(display-mode: standalone)')?.matches ||
+              window.navigator?.standalone === true;
+
+            if (isStandalone) {
+              els.pwaBadge?.classList.remove('hidden');
+              els.pwaBadge.textContent = "✅ 已作为应用运行";
+              return;
+            }
+
+            // 若支持 serviceWorker / manifest，一般具备安装潜力（这里仅提示，不强依赖）
+            const mayInstall = ('serviceWorker' in navigator);
+            if (mayInstall) {
+              els.pwaBadge?.classList.remove('hidden');
+              els.pwaBadge.textContent = "✅ 可安装(PWA)";
+            }
         };
 
         // --- Rendering ---
-
         let currentStyle = null;
 
         const render = () => {
-            // Check if style changed
             if (currentStyle !== state.settings.style) {
                 currentStyle = state.settings.style;
-                // Update wrapper classes
-                els.styleWrapper.className = `w-full h-full flex flex-col items-center justify-center transition-all duration-1000 p-4 overflow-hidden ${THEMES[currentStyle] || "bg-black text-white"}`;
-                
-                // Re-build DOM structure for the specific clock style
+                els.styleWrapper.className =
+                  `w-full h-full flex flex-col items-center justify-center transition-all duration-1000 p-4 overflow-hidden ${THEMES[currentStyle] || "bg-black text-white"}`;
                 renderClockStructure(currentStyle);
             }
-            
-            // Update inputs if they don't have focus (to avoid annoying user typing)
-             if (document.activeElement !== els.inputVirtualNow) {
-                 // We don't update time input constantly as it represents the *start* time or setting, 
-                 // but here we just keep it synced with state if needed. 
-                 // Actually, React code only updates it on change. 
-                 els.inputVirtualNow.value = state.settings.virtualNow;
-             }
-             if (document.activeElement !== els.inputMessage) {
-                 els.inputMessage.value = state.settings.customMessage;
-             }
+
+            if (document.activeElement !== els.inputVirtualNow) {
+                els.inputVirtualNow.value = state.settings.virtualNow;
+            }
+            if (document.activeElement !== els.inputMessage) {
+                els.inputMessage.value = state.settings.customMessage;
+            }
         };
-        
+
         const renderClockStructure = (style) => {
             const container = els.clockContent;
-            container.innerHTML = ''; // Clear previous
+            container.innerHTML = '';
 
             if (style === ClockStyle.IOS_MINIMAL) {
                  container.innerHTML = `
@@ -314,34 +350,26 @@
              const secondsEl = document.getElementById('seconds-el');
              const messageEl = document.getElementById('message-el');
 
-             if (!dateEl || !hoursEl) return; // Not mounted yet
+             if (!dateEl || !hoursEl) return;
 
              const { year, month, day, hours, minutes, seconds } = state.clockData;
-             
-             // Update Date
+
              dateEl.textContent = `${year}年${month}月${day}日`;
-             
-             // Update Time
              hoursEl.textContent = pad(hours);
              minutesEl.textContent = pad(minutes);
              secondsEl.textContent = pad(seconds);
-             
-             // Update Message
+
              const msg = state.settings.customMessage;
-             if (messageEl.textContent !== msg) {
-                 messageEl.textContent = msg;
-             }
+             if (messageEl.textContent !== msg) messageEl.textContent = msg;
         };
 
         // --- Event Listeners & UI Logic ---
-
         const setupEventListeners = () => {
-            // UI visibility
             const showUi = () => {
                 if (state.ui.isSettingsOpen) return;
                 els.controls.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
                 els.controls.classList.add('opacity-100', 'translate-y-0');
-                
+
                 if (state.ui.uiTimer) clearTimeout(state.ui.uiTimer);
                 state.ui.uiTimer = setTimeout(() => {
                     if (!state.ui.isSettingsOpen) {
@@ -354,7 +382,6 @@
             els.app.addEventListener('click', showUi);
             els.app.addEventListener('mousemove', showUi);
 
-            // Controls
             els.btnReset.addEventListener('click', (e) => {
                 e.stopPropagation();
                 calculateOffset();
@@ -370,10 +397,9 @@
                 toggleFullScreen();
             });
 
-            // Settings Panel Events
             els.btnCloseSettings.addEventListener('click', closeSettings);
             els.settingsBackdrop.addEventListener('click', closeSettings);
-            
+
             els.inputVirtualNow.addEventListener('change', (e) => {
                 state.settings.virtualNow = e.target.value;
                 calculateOffset();
@@ -387,23 +413,22 @@
                  const now = new Date();
                  const localNow = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 19);
                  state.settings.virtualNow = localNow;
-                 render(); // Update input value
+                 render();
                  calculateOffset();
             });
-            
+
             els.btnAiWish.addEventListener('click', async () => {
                 els.btnAiWish.disabled = true;
                 els.btnAiWish.textContent = "生成中...";
                 const wish = await generateNewYearWish(state.settings.customMessage || "新的一年，万事大吉");
                 state.settings.customMessage = wish;
-                render(); // Update textarea
+                render();
                 els.btnAiWish.textContent = "✨ AI 润色愿望";
                 els.btnAiWish.disabled = false;
             });
         };
 
         const initSettingsUI = () => {
-             // Generate style buttons
              els.styleSelector.innerHTML = Object.values(ClockStyle).map(s => `
                 <button class="style-btn p-3 rounded-lg text-left transition-all text-xs md:text-sm ${state.settings.style === s ? 'bg-white text-black font-bold' : 'bg-white/5 hover:bg-white/10'}" data-style="${s}">
                   ${s}
@@ -422,11 +447,10 @@
         const updateStyleButtons = () => {
              els.styleSelector.querySelectorAll('.style-btn').forEach(btn => {
                  const s = btn.dataset.style;
-                 if (state.settings.style === s) {
-                     btn.className = 'style-btn p-3 rounded-lg text-left transition-all text-xs md:text-sm bg-white text-black font-bold';
-                 } else {
-                     btn.className = 'style-btn p-3 rounded-lg text-left transition-all text-xs md:text-sm bg-white/5 hover:bg-white/10';
-                 }
+                 btn.className =
+                   state.settings.style === s
+                    ? 'style-btn p-3 rounded-lg text-left transition-all text-xs md:text-sm bg-white text-black font-bold'
+                    : 'style-btn p-3 rounded-lg text-left transition-all text-xs md:text-sm bg-white/5 hover:bg-white/10';
              });
         };
 
@@ -434,8 +458,7 @@
             state.ui.isSettingsOpen = true;
             els.settingsBackdrop.classList.remove('hidden');
             els.settingsPanel.classList.remove('translate-x-full');
-            
-            // Keep controls visible behind
+
             els.controls.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
             els.controls.classList.add('opacity-100', 'translate-y-0');
             if (state.ui.uiTimer) clearTimeout(state.ui.uiTimer);
@@ -445,8 +468,7 @@
             state.ui.isSettingsOpen = false;
             els.settingsBackdrop.classList.add('hidden');
             els.settingsPanel.classList.add('translate-x-full');
-            
-            // Allow controls to fade out again
+
             state.ui.uiTimer = setTimeout(() => {
                 if (!state.ui.isSettingsOpen) {
                     els.controls.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
@@ -461,17 +483,14 @@
                 state.ui.isFullScreen = true;
                 els.btnFullscreen.innerHTML = "退出全屏";
             } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                    state.ui.isFullScreen = false;
-                    els.btnFullscreen.innerHTML = "📽️ 进入全屏";
-                }
+                document.exitFullscreen?.();
+                state.ui.isFullScreen = false;
+                els.btnFullscreen.innerHTML = "📽️ 进入全屏";
             }
         };
 
         // --- Start ---
         init();
-
     </script>
 </body>
 </html>
